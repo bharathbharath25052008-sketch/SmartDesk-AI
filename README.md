@@ -1,19 +1,16 @@
 # SmartDesk AI 🤖
-
 ### Intelligent IT Helpdesk & AI-Powered Troubleshooting System
 
-SmartDesk AI is a web-based IT helpdesk application that helps users create and manage support tickets and receive AI-generated troubleshooting guidance using a locally running Llama 3.2 model.
+SmartDesk AI is a web-based IT helpdesk application built with Python, FastAPI, SQLite, and local AI. It helps manage support tickets and provides AI-generated troubleshooting guidance using Ollama and Llama 3.2.
 
-## ✨ Features
+## 🚀 Features
 
-- Create IT support tickets
-- Set ticket priorities: Low, Medium, High
-- Track ticket statuses: Open, In Progress, Resolved
-- Store tickets in an SQLite database
-- Get AI-powered troubleshooting suggestions
+- Create and manage IT support tickets
+- Track ticket status and priority
+- View helpdesk ticket statistics
+- Generate AI-powered troubleshooting suggestions
 - Run AI locally using Ollama and Llama 3.2
-- Explore API endpoints using FastAPI Swagger documentation
-- View ticket statistics on the dashboard
+- Store ticket information in SQLite
 
 ## 🛠️ Technologies Used
 
@@ -23,87 +20,81 @@ SmartDesk AI is a web-based IT helpdesk application that helps users create and 
 - HTML, CSS, JavaScript
 - Ollama
 - Llama 3.2
-- Uvicorn
 
-## 🚀 Getting Started
+## ⚙️ Requirements
 
-### Prerequisites
+- Windows, macOS, or Linux
+- Python 3.10+
+- Ollama
+- Git (optional)
 
-Install Python and Ollama. Download the Llama 3.2 model:
+## ▶️ Installation and Setup
 
-```bash
-ollama pull llama3.2
-```
+1. Clone the repository:
 
-### Installation
+   ```bash
+   git clone https://github.com/bharathbharath25052008-sketch/SmartDesk-AI.git
+   cd SmartDesk-AI
+   ```
 
-Clone or download this project and open its folder in a terminal.
+2. Create a virtual environment:
 
-Create a virtual environment:
+   ```bash
+   python -m venv .venv
+   ```
 
-```bash
-py -3.13 -m venv .venv
-```
+3. Activate the environment on Windows:
 
-Install dependencies:
+   ```cmd
+   .venv\Scripts\activate
+   ```
 
-```bash
-.venv\Scripts\python.exe -m pip install fastapi "uvicorn[standard]"
-```
+4. Install dependencies:
 
-Start the application:
+   ```bash
+   pip install fastapi uvicorn
+   ```
 
-```bash
-.venv\Scripts\python.exe -m uvicorn main:app --reload
-```
+5. Install Ollama from https://ollama.com and download the model:
 
-Open the dashboard:
+   ```bash
+   ollama pull llama3.2
+   ```
 
-http://127.0.0.1:8000/
+6. Start the application:
 
-Open interactive API documentation:
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+7. Open the dashboard:
+
+   http://127.0.0.1:8000
+
+API documentation:
 
 http://127.0.0.1:8000/docs
 
-## 🤖 AI Troubleshooting
+## 📁 Project Structure
 
-Enter an IT issue, such as:
+```text
+SmartDesk-AI/
+├── main.py
+├── index.html
+├── README.md
+└── .gitignore
+```
 
-`My laptop is connected to WiFi but internet is not working.`
+## 🔒 Privacy
 
-SmartDesk AI sends the issue to the locally running Llama 3.2 model and displays suggested causes and troubleshooting steps.
-
-Make sure Ollama is running and the model is available before using this feature.
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/` | Open dashboard |
-| GET | `/api` | API welcome message |
-| GET | `/tickets` | List support tickets |
-| POST | `/tickets` | Create a ticket |
-| PUT | `/tickets/{ticket_id}` | Update ticket status |
-| POST | `/ai/troubleshoot` | Get AI troubleshooting |
-
-## 💾 Database
-
-SQLite stores ticket information locally in `smartdesk.db`.
-
-Back up the database before making major changes.
-
-## 🔒 Privacy & Security
-
-- AI troubleshooting is designed to use a local Ollama model.
-- Do not upload private ticket data or database backups to a public repository.
-- Do not commit virtual environments or sensitive configuration files.
-
-## 🎯 Project Goal
-
-To demonstrate a practical combination of IT service management, REST API development, database operations, and locally hosted AI troubleshooting.
+Ticket data is stored locally in SQLite. AI troubleshooting uses a locally running Ollama model.
 
 ## 👨‍💻 Author
 
 **Bharath P**
 
-*Student Project — AI, Python & IT Support Automation*
+GitHub: https://github.com/bharathbharath25052008-sketch
+
+## 📄 License
+
+This project is currently shared without a specified open-source license.
