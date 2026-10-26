@@ -3,6 +3,10 @@
 
 SmartDesk AI is a web-based IT helpdesk application built with Python, FastAPI, SQLite, and local AI. It helps manage support tickets and provides AI-generated troubleshooting guidance using Ollama and Llama 3.2.
 
+## 📸 Dashboard Preview
+
+![SmartDesk AI Dashboard](dashboard.png)
+
 ## 🚀 Features
 
 - Create and manage IT support tickets
