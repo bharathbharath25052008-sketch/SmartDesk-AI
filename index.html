@@ -2,527 +2,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartDesk AI | Helpdesk Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #172033;
-        }
-        header {
-            background: #14213d;
-            color: white;
-            padding: 22px 7%;
-        }
-        header h1 { margin: 0 0 6px; }
-        header p { margin: 0; color: #cbd5e1; }
-        main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .card, .panel {
-            background: white;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 3px 12px #0f172a0c;
-        }
-        .card span { color: #64748b; font-size: 14px; }
-        .card h2 { margin: 10px 0 0; font-size: 30px; }
-        .panel { margin-bottom: 22px; }
-        .panel h2 { margin-top: 0; }
-        form { display: grid; gap: 12px; }
-        input, textarea, select, button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 7px;
-            border: 1px solid #cbd5e1;
-            font: inherit;
-        }
-        textarea { min-height: 90px; resize: vertical; }
-        button {
-            background: #2563eb;
-            color: white;
-            border: 0;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { background: #1d4ed8; }
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 650px; }
-        th, td { padding: 13px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { color: #64748b; font-size: 13px; }
-        .status-select { min-width: 130px; padding: 8px; }
-        #message { margin-top: 12px; }
-        .error { color: #dc2626; }
-        .success { color: #15803d; }
-        footer { text-align: center; padding: 25px; color: #64748b; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDesk AI | IT Operations</title>
+<style>
+:root{--bg:#f4f7fb;--panel:#fff;--navy:#111c36;--blue:#4f70f5;--text:#17233b;--muted:#8792a7;--line:#e8edf5;--green:#159b72;--orange:#e99a32;--red:#e45c68;--shadow:0 8px 30px rgba(25,42,78,.055)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;transition:.2s}
+.layout{min-height:100vh;display:flex}
+.sidebar{width:245px;flex-shrink:0;background:var(--navy);color:#fff;padding:25px 17px;display:flex;flex-direction:column;min-height:100vh}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 9px 35px}
+.logo{width:40px;height:40px;background:linear-gradient(135deg,#7690ff,#4b64eb);border-radius:13px;display:grid;place-items:center;font-size:21px;box-shadow:0 6px 18px #536df855}
+.brand h2{font-size:19px;margin:0;letter-spacing:-.6px}
+.brand small{display:block;color:#9ca9c8;margin-top:4px;font-size:11px}
+.nav-label{font-size:10px;letter-spacing:1.8px;color:#7887a8;padding:0 12px;margin:10px 0 12px}
+.nav{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;color:#aeb9d2;margin-bottom:5px;font-size:13px;cursor:pointer}
+.nav.active,.nav:hover{background:#273657;color:white}
+.nav.active{box-shadow:inset 3px 0 #7990ff}
+.nav-icon{width:20px;text-align:center;font-size:16px}
+.sidebar-bottom{margin-top:auto;background:#1d2b4b;padding:15px;border:1px solid #30405f;border-radius:13px}
+.online{display:flex;gap:8px;align-items:center;font-size:12px;font-weight:600}
+.dot{height:8px;width:8px;border-radius:50%;background:#32d6a0;box-shadow:0 0 10px #32d6a077}
+.sidebar-bottom p{font-size:11px;line-height:1.6;color:#a4b2cd;margin-bottom:0}
+.main{flex:1;min-width:0;padding:28px 35px 40px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:30px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:7px}
+h1{font-size:26px;letter-spacing:-.8px;margin:0;font-weight:750}
+.subtitle{color:var(--muted);font-size:13px;margin-top:8px}
+.top-right{display:flex;align-items:center;gap:12px}
+.live-pill{background:#e5f8f1;color:#138460;border-radius:30px;padding:9px 13px;font-size:11px;font-weight:700}
+.avatar{width:39px;height:39px;border-radius:13px;background:#e7ebff;color:#4c64db;display:grid;place-items:center;font-weight:800}
+.section-title{font-size:15px;font-weight:750;margin:0}
+.section-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;margin:23px 0 27px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px;box-shadow:var(--shadow)}
+.stat-head{display:flex;justify-content:space-between;align-items:center;color:#78849a;font-size:12px;gap:8px}
+.stat-icon{height:35px;width:35px;border-radius:11px;display:grid;place-items:center;font-size:17px;background:#edf0ff}
+.stat-num{font-size:31px;letter-spacing:-1px;font-weight:780;margin:16px 0 7px}
+.stat-foot{font-size:11px;color:var(--muted)}
+.stat-foot span{color:var(--green);font-weight:700}
+.grid-main{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.85fr);gap:20px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+.card-head{padding:20px 21px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+.card-head p{font-size:12px;color:var(--muted);margin:5px 0 0}
+.btn{border:0;border-radius:9px;padding:10px 14px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 10px #4f70f52c}
+.btn-primary:hover{background:#3d5be3;transform:translateY(-1px)}
+.btn-light{background:#f1f4fa;color:#47546c}
+.btn-light:hover{background:#e7ebf5}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+th{text-align:left;padding:13px 17px;background:#fafbfe;color:#8c97aa;font-size:10px;letter-spacing:.8px;font-weight:700}
+td{padding:15px 17px;border-top:1px solid #eff2f7;font-size:12px}
+tbody tr:hover{background:#fafbff}
+.ticket-title{font-weight:700;color:#273550}
+.ticket-id{font-size:10px;color:#98a2b4;margin-top:5px}
+.pill{display:inline-block;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.pill-open{background:#fff3df;color:#b97816}
+.pill-progress{background:#e8edff;color:#4b65db}
+.pill-resolved{background:#e2f7ef;color:#14835f}
+.pill-high{background:#ffeaeb;color:#d74d5a}
+.pill-medium{background:#fff3df;color:#bd7c21}
+.pill-low{background:#e6f6ef;color:#188363}
+.select-status{max-width:125px;border:1px solid #e2e8f2;border-radius:7px;padding:6px;background:white;font-size:11px;color:#536078}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.form-body{padding:20px}
+.field{margin-bottom:14px}
+label{display:block;font-size:11px;font-weight:700;color:#647189;margin-bottom:7px}
+input,select,textarea{width:100%;border:1px solid #e0e6f0;border-radius:9px;padding:11px 12px;background:#fbfcff;color:var(--text);outline:none;font-size:12px}
+input:focus,select:focus,textarea:focus{border-color:#8095ff;box-shadow:0 0 0 3px #718aff19}
+textarea{min-height:78px;resize:vertical}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{width:100%}
+.ai-card{background:linear-gradient(145deg,#111d39,#1c2b50);color:white;border:0}
+.ai-card .card-head{border-color:#34415f}
+.ai-card .card-head p{color:#a7b4d0}
+.ai-badge{display:inline-block;border:1px solid #44547b;color:#c8d4ff;background:#28385d;border-radius:20px;padding:6px 9px;font-size:10px}
+.ai-body{padding:20px}
+.ai-body label{color:#c0cce5}
+.ai-body input,.ai-body textarea{background:#1b2b4c;border-color:#3b4a6c;color:#fff}
+.ai-body input::placeholder,.ai-body textarea::placeholder{color:#8292b3}
+.ai-result{display:none;margin-top:15px;padding:15px;border-radius:10px;background:#24365b;border:1px solid #41547c;color:#e3eaff;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-result.loading{display:block;color:#c8d4ff}
+.quick{padding:18px 20px}
+.quick-row{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}
+.quick-row:last-child{border:0}
+.quick-icon{height:34px;width:34px;border-radius:10px;display:grid;place-items:center;background:#eff2ff}
+.quick-row strong{font-size:12px}
+.quick-row p{font-size:11px;color:var(--muted);margin:4px 0 0}
+.footer{display:flex;justify-content:space-between;gap:12px;color:#9aa4b5;font-size:11px;padding:8px 2px}
+.toast{position:fixed;right:25px;bottom:25px;background:#14213d;color:white;padding:14px 19px;border-radius:11px;box-shadow:var(--shadow);font-size:12px;display:none;z-index:10}
+@media(max-width:1150px){.main{padding:24px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-main{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.sidebar{width:65px;padding:20px 8px}.brand{padding:0 4px 30px}.brand h2,.brand small,.nav-label,.nav-text,.sidebar-bottom{display:none}.nav{justify-content:center;padding:13px 5px}.main{padding:19px 13px}.topbar{align-items:flex-start}.top-right{gap:6px}.live-pill{display:none}h1{font-size:22px}.stats{gap:10px}.stat{padding:14px}.stat-num{font-size:26px}.stat-head{font-size:11px}.two-col{grid-template-columns:1fr}.footer{flex-direction:column}}
+</style>
 </head>
 <body>
-<header>
-    <h1>SmartDesk AI</h1>
-    <p>Intelligent IT Helpdesk & Ticket Management System</p>
-</header>
-
-<main>
-    <section class="stats">
-        <div class="card"><span>Total Tickets</span><h2 id="total">0</h2></div>
-        <div class="card"><span>Open</span><h2 id="open">0</h2></div>
-        <div class="card"><span>In Progress</span><h2 id="progress">0</h2></div>
-        <div class="card"><span>Resolved</span><h2 id="resolved">0</h2></div>
-    </section>
-
-    <section class="panel">
-        <h2>Create New Ticket</h2>
-        <form id="ticketForm">
-            <input id="title" placeholder="Ticket title" required maxlength="150">
-            <textarea id="description" placeholder="Describe the issue" required maxlength="2000"></textarea>
-            <select id="priority">
-                <option>Low</option>
-                <option selected>Medium</option>
-                <option>High</option>
-            </select>
-            <button type="submit">Create Ticket</button>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">✦</div><div><h2>SmartDesk<span style="color:#8297ff"> AI</span></h2><small>IT OPERATIONS CENTER</small></div></div>
+  <div class="nav-label">WORKSPACE</div>
+  <div class="nav active" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▦</span><span class="nav-text">Overview</span></div>
+  <div class="nav" onclick="document.getElementById('tickets-section').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▤</span><span class="nav-text">Support Tickets</span></div>
+  <div class="nav" onclick="document.getElementById('create-section').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">＋</span><span class="nav-text">Create Ticket</span></div>
+  <div class="nav" onclick="document.getElementById('ai-section').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">✧</span><span class="nav-text">AI Assistant</span></div>
+  <div class="nav-label" style="margin-top:27px">SYSTEM</div>
+  <div class="nav" onclick="window.location.href='/docs'"><span class="nav-icon">⌘</span><span class="nav-text">API Documentation</span></div>
+  <div class="sidebar-bottom"><div class="online"><span class="dot"></span> AI Engine Ready</div><p>Local intelligence powered by Llama 3.2 through Ollama.</p></div>
+</aside>
+<main class="main" id="overview">
+  <header class="topbar">
+    <div><div class="breadcrumb">Workspace / Overview</div><h1>IT Operations Dashboard</h1><div class="subtitle">Monitor support activity and resolve issues smarter.</div></div>
+    <div class="top-right"><div class="live-pill">● SYSTEM ONLINE</div><div class="avatar">SD</div></div>
+  </header>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2 class="section-title">Overview</h2><div class="section-sub">Here's your helpdesk at a glance.</div></div><button class="btn btn-primary" onclick="document.getElementById('create-section').scrollIntoView({behavior:'smooth'})">＋ New ticket</button></div>
+  <section class="stats">
+    <div class="stat"><div class="stat-head">Total tickets <span class="stat-icon">▤</span></div><div class="stat-num" id="total-count">—</div><div class="stat-foot">All recorded requests</div></div>
+    <div class="stat"><div class="stat-head">Open tickets <span class="stat-icon" style="background:#fff3df">◷</span></div><div class="stat-num" id="open-count">—</div><div class="stat-foot">Awaiting resolution</div></div>
+    <div class="stat"><div class="stat-head">In progress <span class="stat-icon" style="background:#e8edff">↗</span></div><div class="stat-num" id="progress-count">—</div><div class="stat-foot">Being worked on</div></div>
+    <div class="stat"><div class="stat-head">Resolved <span class="stat-icon" style="background:#e2f7ef">✓</span></div><div class="stat-num" id="resolved-count">—</div><div class="stat-foot">Successfully completed</div></div>
+  </section>
+  <div class="grid-main">
+    <div>
+      <section class="card" id="tickets-section">
+        <div class="card-head"><div><h2 class="section-title">Support tickets</h2><p>Track and manage incoming IT issues</p></div><button class="btn btn-light" onclick="loadTickets()">↻ Refresh</button></div>
+        <div class="table-wrap"><table><thead><tr><th>TICKET</th><th>PRIORITY</th><th>STATUS</th><th>UPDATE</th></tr></thead><tbody id="ticket-list"><tr><td colspan="4" class="empty">Loading tickets...</td></tr></tbody></table></div>
+        <div class="footer" style="padding:15px 20px"><span id="ticket-summary">Loading ticket data</span><span>Connected to local API</span></div>
+      </section>
+      <section class="card" id="create-section">
+        <div class="card-head"><div><h2 class="section-title">Create a ticket</h2><p>Log a new support request</p></div><span class="stat-icon">＋</span></div>
+        <form class="form-body" id="ticket-form">
+          <div class="field"><label for="title">ISSUE TITLE</label><input id="title" name="title" placeholder="e.g. Wi-Fi connection problem" required></div>
+          <div class="field"><label for="description">DESCRIPTION</label><textarea id="description" name="description" placeholder="Describe the issue and what happened..." required></textarea></div>
+          <div class="two-col">
+            <div class="field"><label for="priority">PRIORITY</label><select id="priority" name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+            <div class="field"><label for="status">INITIAL STATUS</label><select id="status" name="status"><option>Open</option><option>In Progress</option></select></div>
+          </div>
+          <button class="btn btn-primary full" id="create-btn" type="submit">＋ Create support ticket</button>
+          <div id="form-message" class="section-sub" style="margin-top:12px"></div>
         </form>
-        <p id="message" role="status"></p>
-    </section>
-
-    <section class="panel">
-        <h2>All Support Tickets</h2>
-        <button id="refresh" type="button" style="width:auto;margin-bottom:15px">Refresh Tickets</button>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>Update Status</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketRows">
-                    <tr><td colspan="5">Loading tickets...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</main>
-
-<footer>SmartDesk AI · IT Support Dashboard</footer>
-
-<script>
-    const API = "http://127.0.0.1:8000";
-    const rows = document.getElementById("ticketRows");
-    const message = document.getElementById("message");
-
-    async function loadTickets() {
-        try {
-            const response = await fetch(`${API}/tickets`);
-            if (!response.ok) throw new Error("Could not load tickets");
-            const tickets = await response.json();
-
-            document.getElementById("total").textContent = tickets.length;
-            document.getElementById("open").textContent =
-                tickets.filter(t => t.status === "Open").length;
-            document.getElementById("progress").textContent =
-                tickets.filter(t => t.status === "In Progress").length;
-            document.getElementById("resolved").textContent =
-                tickets.filter(t => t.status === "Resolved").length;
-
-            rows.replaceChildren();
-
-            if (tickets.length === 0) {
-                const tr = document.createElement("tr");
-                const td = document.createElement("td");
-                td.colSpan = 5;
-                td.textContent = "No tickets yet.";
-                tr.appendChild(td);
-                rows.appendChild(tr);
-                return;
-            }
-
-            tickets.forEach(ticket => {
-                const tr = document.createElement("tr");
-                [ticket.id, ticket.title, ticket.priority, ticket.status].forEach(value => {
-                    const td = document.createElement("td");
-                    td.textContent = value;
-                    tr.appendChild(td);
-                });
-
-                const actionCell = document.createElement("td");
-                const select = document.createElement("select");
-                select.className = "status-select";
-
-                ["Open", "In Progress", "Resolved"].forEach(status => {
-                    const option = document.createElement("option");
-                    option.value = status;
-                    option.textContent = status;
-                    if (ticket.status === status) option.selected = true;
-                    select.appendChild(option);
-                });
-
-                select.addEventListener("change", async () => {
-                    try {
-                        const result = await fetch(
-                            `${API}/tickets/${ticket.id}?status=${encodeURIComponent(select.value)}`,
-                            { method: "PUT" }
-                        );
-                        const data = await result.json();
-                        if (!result.ok) throw new Error(data.detail?.message || data.detail || "Update failed");
-                        message.className = "success";
-                        message.textContent = `Ticket #${ticket.id} updated successfully.`;
-                        await loadTickets();
-                    } catch (error) {
-                        message.className = "error";
-                        message.textContent = error.message;
-                        await loadTickets();
-                    }
-                });
-
-                actionCell.appendChild(select);
-                tr.appendChild(actionCell);
-                rows.appendChild(tr);
-            });
-        } catch (error) {
-            rows.replaceChildren();
-            const tr = document.createElement("tr");
-            const td = document.createElement("td");
-            td.colSpan = 5;
-            td.textContent = "Unable to connect to the API. Check that the backend server is running.";
-            tr.appendChild(td);
-            rows.appendChild(tr);
-        }
-    }
-
-    document.getElementById("ticketForm").addEventListener("submit", async event => {
-        event.preventDefault();
-        message.className = "";
-        message.textContent = "Creating ticket...";
-
-        const ticket = {
-            title: document.getElementById("title").value.trim(),
-            description: document.getElementById("description").value.trim(),
-            priority: document.getElementById("priority").value
-        };
-
-        if (!ticket.title || !ticket.description) {
-            message.className = "error";
-            message.textContent = "Please enter a title and description.";
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API}/tickets`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(ticket)
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail?.[0]?.msg || data.detail || "Could not create ticket");
-
-            message.className = "success";
-            message.textContent = `Ticket #${data.ticket.id} created successfully!`;
-            document.getElementById("ticketForm").reset();
-            await loadTickets();
-        } catch (error) {
-            message.className = "error";
-            message.textContent = "Could not create ticket. Make sure the backend is running and the browser can connect to it.";
-        }
-    });
-
-    document.getElementById("refresh").addEventListener("click", loadTickets);
-    loadTickets();
-</script>
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartDesk AI | Helpdesk Dashboard</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #172033;
-        }
-        header {
-            background: #14213d;
-            color: white;
-            padding: 22px 7%;
-        }
-        header h1 { margin: 0 0 6px; }
-        header p { margin: 0; color: #cbd5e1; }
-        main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .card, .panel {
-            background: white;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 3px 12px #0f172a0c;
-        }
-        .card span { color: #64748b; font-size: 14px; }
-        .card h2 { margin: 10px 0 0; font-size: 30px; }
-        .panel { margin-bottom: 22px; }
-        .panel h2 { margin-top: 0; }
-        form { display: grid; gap: 12px; }
-        input, textarea, select, button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 7px;
-            border: 1px solid #cbd5e1;
-            font: inherit;
-        }
-        textarea { min-height: 90px; resize: vertical; }
-        button {
-            background: #2563eb;
-            color: white;
-            border: 0;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover { background: #1d4ed8; }
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 650px; }
-        th, td { padding: 13px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { color: #64748b; font-size: 13px; }
-        .status-select { min-width: 130px; padding: 8px; }
-        #message { margin-top: 12px; }
-        .error { color: #dc2626; }
-        .success { color: #15803d; }
-        footer { text-align: center; padding: 25px; color: #64748b; }
-    </style>
-</head>
-<body>
-<header>
-    <h1>SmartDesk AI</h1>
-    <p>Intelligent IT Helpdesk & Ticket Management System</p>
-</header>
-
-<main>
-    <section class="stats">
-        <div class="card"><span>Total Tickets</span><h2 id="total">0</h2></div>
-        <div class="card"><span>Open</span><h2 id="open">0</h2></div>
-        <div class="card"><span>In Progress</span><h2 id="progress">0</h2></div>
-        <div class="card"><span>Resolved</span><h2 id="resolved">0</h2></div>
-    </section>
-
-    <section class="panel">
-        <h2>Create New Ticket</h2>
-        <form id="ticketForm">
-            <input id="title" placeholder="Ticket title" required maxlength="150">
-            <textarea id="description" placeholder="Describe the issue" required maxlength="2000"></textarea>
-            <select id="priority">
-                <option>Low</option>
-                <option selected>Medium</option>
-                <option>High</option>
-            </select>
-            <button type="submit">Create Ticket</button>
+      </section>
+    </div>
+    <div>
+      <section class="card ai-card" id="ai-section">
+        <div class="card-head"><div><h2 class="section-title">✧ AI Troubleshooter</h2><p>Get intelligent troubleshooting guidance</p></div><span class="ai-badge">LLAMA 3.2</span></div>
+        <form class="ai-body" id="ai-form">
+          <div class="field"><label for="ai-issue">WHAT'S THE PROBLEM?</label><input id="ai-issue" placeholder="e.g. Printer not responding" required></div>
+          <div class="field"><label for="ai-details">ADDITIONAL DETAILS</label><textarea id="ai-details" placeholder="Any error messages or steps tried?"></textarea></div>
+          <button class="btn btn-primary full" id="ai-btn" type="submit">✧ Generate solution</button>
+          <div id="ai-result" class="ai-result" aria-live="polite"></div>
         </form>
-        <p id="message" role="status"></p>
-    </section>
-
-    <section class="panel">
-        <h2>All Support Tickets</h2>
-        <button id="refresh" type="button" style="width:auto;margin-bottom:15px">Refresh Tickets</button>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>Update Status</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketRows">
-                    <tr><td colspan="5">Loading tickets...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
+      </section>
+      <section class="card"><div class="card-head"><div><h2 class="section-title">Platform status</h2><p>Local services overview</p></div><span class="dot"></span></div><div class="quick">
+        <div class="quick-row"><div class="quick-icon">⚡</div><div><strong>FastAPI backend</strong><p id="api-state">Checking API connection...</p></div></div>
+        <div class="quick-row"><div class="quick-icon">▤</div><div><strong>SQLite storage</strong><p>Local ticket database</p></div></div>
+        <div class="quick-row"><div class="quick-icon">✧</div><div><strong>Local AI engine</strong><p>Ollama · Llama 3.2</p></div></div>
+      </div></section>
+      <section class="card"><div class="card-head"><div><h2 class="section-title">Quick guide</h2><p>Get started in seconds</p></div></div><div class="quick">
+        <div class="quick-row"><div class="quick-icon">01</div><div><strong>Log an issue</strong><p>Create a support ticket with priority.</p></div></div>
+        <div class="quick-row"><div class="quick-icon">02</div><div><strong>Track progress</strong><p>Update the ticket as work progresses.</p></div></div>
+        <div class="quick-row"><div class="quick-icon">03</div><div><strong>Ask the AI</strong><p>Generate troubleshooting suggestions.</p></div></div>
+      </div></section>
+    </div>
+  </div>
+  <footer class="footer"><span>© 2026 SmartDesk AI · IT Operations Platform</span><span>Built with FastAPI, SQLite &amp; local AI</span></footer>
 </main>
-
-<footer>SmartDesk AI · IT Support Dashboard</footer>
-
+</div>
+<div class="toast" id="toast" role="status"></div>
 <script>
-    const API = "http://127.0.0.1:8000";
-    const rows = document.getElementById("ticketRows");
-    const message = document.getElementById("message");
-
-    async function loadTickets() {
-        try {
-            const response = await fetch(`${API}/tickets`);
-            if (!response.ok) throw new Error("Could not load tickets");
-            const tickets = await response.json();
-
-            document.getElementById("total").textContent = tickets.length;
-            document.getElementById("open").textContent =
-                tickets.filter(t => t.status === "Open").length;
-            document.getElementById("progress").textContent =
-                tickets.filter(t => t.status === "In Progress").length;
-            document.getElementById("resolved").textContent =
-                tickets.filter(t => t.status === "Resolved").length;
-
-            rows.replaceChildren();
-
-            if (tickets.length === 0) {
-                const tr = document.createElement("tr");
-                const td = document.createElement("td");
-                td.colSpan = 5;
-                td.textContent = "No tickets yet.";
-                tr.appendChild(td);
-                rows.appendChild(tr);
-                return;
-            }
-
-            tickets.forEach(ticket => {
-                const tr = document.createElement("tr");
-                [ticket.id, ticket.title, ticket.priority, ticket.status].forEach(value => {
-                    const td = document.createElement("td");
-                    td.textContent = value;
-                    tr.appendChild(td);
-                });
-
-                const actionCell = document.createElement("td");
-                const select = document.createElement("select");
-                select.className = "status-select";
-
-                ["Open", "In Progress", "Resolved"].forEach(status => {
-                    const option = document.createElement("option");
-                    option.value = status;
-                    option.textContent = status;
-                    if (ticket.status === status) option.selected = true;
-                    select.appendChild(option);
-                });
-
-                select.addEventListener("change", async () => {
-                    try {
-                        const result = await fetch(
-                            `${API}/tickets/${ticket.id}?status=${encodeURIComponent(select.value)}`,
-                            { method: "PUT" }
-                        );
-                        const data = await result.json();
-                        if (!result.ok) throw new Error(data.detail?.message || data.detail || "Update failed");
-                        message.className = "success";
-                        message.textContent = `Ticket #${ticket.id} updated successfully.`;
-                        await loadTickets();
-                    } catch (error) {
-                        message.className = "error";
-                        message.textContent = error.message;
-                        await loadTickets();
-                    }
-                });
-
-                actionCell.appendChild(select);
-                tr.appendChild(actionCell);
-                rows.appendChild(tr);
-            });
-        } catch (error) {
-            rows.replaceChildren();
-            const tr = document.createElement("tr");
-            const td = document.createElement("td");
-            td.colSpan = 5;
-            td.textContent = "Unable to connect to the API. Check that the backend server is running.";
-            tr.appendChild(td);
-            rows.appendChild(tr);
-        }
-    }
-
-    document.getElementById("ticketForm").addEventListener("submit", async event => {
-        event.preventDefault();
-        message.className = "";
-        message.textContent = "Creating ticket...";
-
-        const ticket = {
-            title: document.getElementById("title").value.trim(),
-            description: document.getElementById("description").value.trim(),
-            priority: document.getElementById("priority").value
-        };
-
-        if (!ticket.title || !ticket.description) {
-            message.className = "error";
-            message.textContent = "Please enter a title and description.";
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API}/tickets`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(ticket)
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail?.[0]?.msg || data.detail || "Could not create ticket");
-
-            message.className = "success";
-            message.textContent = `Ticket #${data.ticket.id} created successfully!`;
-            document.getElementById("ticketForm").reset();
-            await loadTickets();
-        } catch (error) {
-            message.className = "error";
-            message.textContent = "Could not create ticket. Make sure the backend is running and the browser can connect to it.";
-        }
-    });
-
-    document.getElementById("refresh").addEventListener("click", loadTickets);
-    loadTickets();
-</script>
-<section style="margin:24px 0;padding:24px;background:#fff;border-radius:16px;box-shadow:0 4px 18px #0001">
-  <h2>🤖 AI Troubleshooting Assistant</h2>
-  <p>Describe your IT problem and get AI-powered troubleshooting steps.</p>
-
-  <textarea id="aiIssue" placeholder="Example: My WiFi is not connecting..."
-    style="width:100%;min-height:100px;padding:12px;box-sizing:border-box;border:1px solid #ccc;border-radius:8px"></textarea>
-
-<button onclick="runAI()"
-    style="margin-top:12px;padding:12px 20px;background:#2563eb;color:white;border:0;border-radius:8px;cursor:pointer">
-    AI Troubleshoot
-  </button>
-
-  <pre id="aiResult" style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px"></pre>
-</section>
-
-<script>
-async function runAI() {
-  const issue = document.getElementById("aiIssue").value.trim();
-  const result = document.getElementById("aiResult");
-
-  if (!issue) {
-    result.textContent = "Please describe your IT problem first.";
-    return;
-  }
-
-  result.textContent = "AI is analyzing your issue...";
-
-  try {
-    const response = await fetch("/ai/troubleshoot", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({issue})
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.detail || "AI request failed");
-    }
-
-    result.textContent = data.ai_response;
-  } catch (error) {
-    result.textContent = "Error: " + error.message;
-  }
+const $=id=>document.getElementById(id);
+function toast(message){const el=$('toast');el.textContent=message;el.style.display='block';setTimeout(()=>el.style.display='none',3000)}
+function norm(value){return String(value??'').toLowerCase().replace(/[_-]/g,' ').trim()}
+function field(ticket,keys,fallback=''){for(const key of keys){if(ticket[key]!==undefined&&ticket[key]!==null)return ticket[key]}return fallback}
+function priorityClass(value){const p=norm(value);return p==='high'?'pill-high':p==='low'?'pill-low':'pill-medium'}
+function statusClass(value){const s=norm(value);if(s.includes('resolv')||s==='closed')return 'pill-resolved';if(s.includes('progress')||s.includes('working'))return 'pill-progress';return 'pill-open'}
+function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function loadTickets(){
+  const body=$('ticket-list');
+  try{
+    const response=await fetch('/tickets');
+    if(!response.ok)throw new Error('Ticket API returned '+response.status);
+    const data=await response.json();
+    const tickets=Array.isArray(data)?data:(data.tickets||data.items||[]);
+    $('total-count').textContent=tickets.length;
+    const open=tickets.filter(t=>['open','new','pending'].includes(norm(field(t,['status'],'Open')))).length;
+    const progress=tickets.filter(t=>['in progress','in_progress','working'].includes(norm(field(t,['status'])))).length;
+    const resolved=tickets.filter(t=>['resolved','closed','complete','completed'].includes(norm(field(t,['status'])))).length;
+    $('open-count').textContent=open;
+    $('progress-count').textContent=progress;
+    $('resolved-count').textContent=resolved;
+    $('ticket-summary').textContent=`Showing ${tickets.length} ticket${tickets.length===1?'':'s'}`;
+    if(!tickets.length){body.innerHTML='<tr><td colspan="4" class="empty">No tickets yet. Create your first support ticket.</td></tr>';return}
+    body.innerHTML=tickets.map(t=>{
+      const id=field(t,['id','ticket_id'],'—');
+      const title=field(t,['title','subject','short_description','issue'],'Untitled issue');
+      const description=field(t,['description','details'],'');
+      const priority=field(t,['priority'],'Medium');
+      const status=field(t,['status'],'Open');
+      const safeStatus=String(status);
+      const options=['Open','In Progress','Resolved'];
+      return `<tr><td><div class="ticket-title">${escapeHTML(title)}</div><div class="ticket-id">#${escapeHTML(id)}${description?' · '+escapeHTML(String(description).slice(0,45)):''}</div></td><td><span class="pill ${priorityClass(priority)}">${escapeHTML(priority)}</span></td><td><span class="pill ${statusClass(status)}">${escapeHTML(status)}</span></td><td><select class="select-status" aria-label="Update ticket ${escapeHTML(id)}" onchange="updateTicket('${escapeHTML(id)}',this.value)">${options.map(s=>`<option ${norm(s)===norm(safeStatus)?'selected':''}>${s}</option>`).join('')}</select></td></tr>`
+    }).join('');
+  }catch(error){body.innerHTML='<tr><td colspan="4" class="empty">Could not load tickets. Check that the FastAPI server is running.</td></tr>';$('api-state').textContent='Connection failed';$('ticket-summary').textContent=error.message}
 }
+async function updateTicket(id,status){
+  try{
+    const response=await fetch('/tickets/'+encodeURIComponent(id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    if(!response.ok)throw new Error('Update failed ('+response.status+')');
+    toast('Ticket #'+id+' updated');
+    await loadTickets();
+  }catch(error){toast('Could not update ticket: '+error.message);await loadTickets()}
+}
+$('ticket-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=$('create-btn'),message=$('form-message');
+  button.disabled=true;button.textContent='Creating ticket...';message.textContent='';
+  const payload={title:$('title').value.trim(),description:$('description').value.trim(),priority:$('priority').value,status:$('status').value};
+  try{
+    const response=await fetch('/tickets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.detail||data.error||'Request failed ('+response.status+')');
+    message.textContent='Ticket created successfully.';
+    $('ticket-form').reset();
+    toast('Support ticket created');
+    await loadTickets();
+  }catch(error){message.textContent='Could not create ticket: '+error.message}
+  finally{button.disabled=false;button.textContent='＋ Create support ticket'}
+});
+$('ai-form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=$('ai-btn'),result=$('ai-result');
+  button.disabled=true;button.textContent='✧ Analysing issue...';
+  result.style.display='block';result.className='ai-result loading';result.textContent='AI is analysing the problem. This may take a few seconds...';
+  const issue=$('ai-issue').value.trim(),details=$('ai-details').value.trim();
+  try{
+    const response=await fetch('/ai/troubleshoot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({issue,description:details,problem:issue,details})});
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.detail||data.error||'AI request failed ('+response.status+')');
+    const answer=typeof data==='string'?data:(data.response||data.answer||data.solution||data.result||data.suggestion||JSON.stringify(data,null,2));
+    result.className='ai-result';result.textContent=answer;
+  }catch(error){result.className='ai-result';result.textContent='Could not get AI guidance: '+error.message+'\n\nCheck that Ollama is running and the Llama 3.2 model is available.'}
+  finally{button.disabled=false;button.textContent='✧ Generate solution'}
+});
+async function checkAPI(){try{const r=await fetch('/api');if(!r.ok)throw new Error();$('api-state').textContent='Connected and responding'}catch{$('api-state').textContent='API connection unavailable'}}
+loadTickets();checkAPI();
 </script>
 </body>
 </html>
