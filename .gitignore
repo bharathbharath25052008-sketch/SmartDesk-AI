@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+smartdesk.db
+smartdesk_backup_*.db
+.env
+.gitignore/

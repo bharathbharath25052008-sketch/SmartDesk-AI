@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartDesk AI | Helpdesk Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+        header {
+            background: #14213d;
+            color: white;
+            padding: 22px 7%;
+        }
+        header h1 { margin: 0 0 6px; }
+        header p { margin: 0; color: #cbd5e1; }
+        main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .card, .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0f172a0c;
+        }
+        .card span { color: #64748b; font-size: 14px; }
+        .card h2 { margin: 10px 0 0; font-size: 30px; }
+        .panel { margin-bottom: 22px; }
+        .panel h2 { margin-top: 0; }
+        form { display: grid; gap: 12px; }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            font: inherit;
+        }
+        textarea { min-height: 90px; resize: vertical; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #1d4ed8; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th, td { padding: 13px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: #64748b; font-size: 13px; }
+        .status-select { min-width: 130px; padding: 8px; }
+        #message { margin-top: 12px; }
+        .error { color: #dc2626; }
+        .success { color: #15803d; }
+        footer { text-align: center; padding: 25px; color: #64748b; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>SmartDesk AI</h1>
+    <p>Intelligent IT Helpdesk & Ticket Management System</p>
+</header>
+
+<main>
+    <section class="stats">
+        <div class="card"><span>Total Tickets</span><h2 id="total">0</h2></div>
+        <div class="card"><span>Open</span><h2 id="open">0</h2></div>
+        <div class="card"><span>In Progress</span><h2 id="progress">0</h2></div>
+        <div class="card"><span>Resolved</span><h2 id="resolved">0</h2></div>
+    </section>
+
+    <section class="panel">
+        <h2>Create New Ticket</h2>
+        <form id="ticketForm">
+            <input id="title" placeholder="Ticket title" required maxlength="150">
+            <textarea id="description" placeholder="Describe the issue" required maxlength="2000"></textarea>
+            <select id="priority">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+            </select>
+            <button type="submit">Create Ticket</button>
+        </form>
+        <p id="message" role="status"></p>
+    </section>
+
+    <section class="panel">
+        <h2>All Support Tickets</h2>
+        <button id="refresh" type="button" style="width:auto;margin-bottom:15px">Refresh Tickets</button>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketRows">
+                    <tr><td colspan="5">Loading tickets...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer>SmartDesk AI · IT Support Dashboard</footer>
+
+<script>
+    const API = "http://127.0.0.1:8000";
+    const rows = document.getElementById("ticketRows");
+    const message = document.getElementById("message");
+
+    async function loadTickets() {
+        try {
+            const response = await fetch(`${API}/tickets`);
+            if (!response.ok) throw new Error("Could not load tickets");
+            const tickets = await response.json();
+
+            document.getElementById("total").textContent = tickets.length;
+            document.getElementById("open").textContent =
+                tickets.filter(t => t.status === "Open").length;
+            document.getElementById("progress").textContent =
+                tickets.filter(t => t.status === "In Progress").length;
+            document.getElementById("resolved").textContent =
+                tickets.filter(t => t.status === "Resolved").length;
+
+            rows.replaceChildren();
+
+            if (tickets.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 5;
+                td.textContent = "No tickets yet.";
+                tr.appendChild(td);
+                rows.appendChild(tr);
+                return;
+            }
+
+            tickets.forEach(ticket => {
+                const tr = document.createElement("tr");
+                [ticket.id, ticket.title, ticket.priority, ticket.status].forEach(value => {
+                    const td = document.createElement("td");
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+
+                const actionCell = document.createElement("td");
+                const select = document.createElement("select");
+                select.className = "status-select";
+
+                ["Open", "In Progress", "Resolved"].forEach(status => {
+                    const option = document.createElement("option");
+                    option.value = status;
+                    option.textContent = status;
+                    if (ticket.status === status) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                select.addEventListener("change", async () => {
+                    try {
+                        const result = await fetch(
+                            `${API}/tickets/${ticket.id}?status=${encodeURIComponent(select.value)}`,
+                            { method: "PUT" }
+                        );
+                        const data = await result.json();
+                        if (!result.ok) throw new Error(data.detail?.message || data.detail || "Update failed");
+                        message.className = "success";
+                        message.textContent = `Ticket #${ticket.id} updated successfully.`;
+                        await loadTickets();
+                    } catch (error) {
+                        message.className = "error";
+                        message.textContent = error.message;
+                        await loadTickets();
+                    }
+                });
+
+                actionCell.appendChild(select);
+                tr.appendChild(actionCell);
+                rows.appendChild(tr);
+            });
+        } catch (error) {
+            rows.replaceChildren();
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 5;
+            td.textContent = "Unable to connect to the API. Check that the backend server is running.";
+            tr.appendChild(td);
+            rows.appendChild(tr);
+        }
+    }
+
+    document.getElementById("ticketForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        message.className = "";
+        message.textContent = "Creating ticket...";
+
+        const ticket = {
+            title: document.getElementById("title").value.trim(),
+            description: document.getElementById("description").value.trim(),
+            priority: document.getElementById("priority").value
+        };
+
+        if (!ticket.title || !ticket.description) {
+            message.className = "error";
+            message.textContent = "Please enter a title and description.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API}/tickets`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ticket)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail?.[0]?.msg || data.detail || "Could not create ticket");
+
+            message.className = "success";
+            message.textContent = `Ticket #${data.ticket.id} created successfully!`;
+            document.getElementById("ticketForm").reset();
+            await loadTickets();
+        } catch (error) {
+            message.className = "error";
+            message.textContent = "Could not create ticket. Make sure the backend is running and the browser can connect to it.";
+        }
+    });
+
+    document.getElementById("refresh").addEventListener("click", loadTickets);
+    loadTickets();
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartDesk AI | Helpdesk Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+        header {
+            background: #14213d;
+            color: white;
+            padding: 22px 7%;
+        }
+        header h1 { margin: 0 0 6px; }
+        header p { margin: 0; color: #cbd5e1; }
+        main { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .card, .panel {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0f172a0c;
+        }
+        .card span { color: #64748b; font-size: 14px; }
+        .card h2 { margin: 10px 0 0; font-size: 30px; }
+        .panel { margin-bottom: 22px; }
+        .panel h2 { margin-top: 0; }
+        form { display: grid; gap: 12px; }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            font: inherit;
+        }
+        textarea { min-height: 90px; resize: vertical; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: 0;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #1d4ed8; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th, td { padding: 13px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: #64748b; font-size: 13px; }
+        .status-select { min-width: 130px; padding: 8px; }
+        #message { margin-top: 12px; }
+        .error { color: #dc2626; }
+        .success { color: #15803d; }
+        footer { text-align: center; padding: 25px; color: #64748b; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>SmartDesk AI</h1>
+    <p>Intelligent IT Helpdesk & Ticket Management System</p>
+</header>
+
+<main>
+    <section class="stats">
+        <div class="card"><span>Total Tickets</span><h2 id="total">0</h2></div>
+        <div class="card"><span>Open</span><h2 id="open">0</h2></div>
+        <div class="card"><span>In Progress</span><h2 id="progress">0</h2></div>
+        <div class="card"><span>Resolved</span><h2 id="resolved">0</h2></div>
+    </section>
+
+    <section class="panel">
+        <h2>Create New Ticket</h2>
+        <form id="ticketForm">
+            <input id="title" placeholder="Ticket title" required maxlength="150">
+            <textarea id="description" placeholder="Describe the issue" required maxlength="2000"></textarea>
+            <select id="priority">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+            </select>
+            <button type="submit">Create Ticket</button>
+        </form>
+        <p id="message" role="status"></p>
+    </section>
+
+    <section class="panel">
+        <h2>All Support Tickets</h2>
+        <button id="refresh" type="button" style="width:auto;margin-bottom:15px">Refresh Tickets</button>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Title</th><th>Priority</th><th>Status</th><th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketRows">
+                    <tr><td colspan="5">Loading tickets...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer>SmartDesk AI · IT Support Dashboard</footer>
+
+<script>
+    const API = "http://127.0.0.1:8000";
+    const rows = document.getElementById("ticketRows");
+    const message = document.getElementById("message");
+
+    async function loadTickets() {
+        try {
+            const response = await fetch(`${API}/tickets`);
+            if (!response.ok) throw new Error("Could not load tickets");
+            const tickets = await response.json();
+
+            document.getElementById("total").textContent = tickets.length;
+            document.getElementById("open").textContent =
+                tickets.filter(t => t.status === "Open").length;
+            document.getElementById("progress").textContent =
+                tickets.filter(t => t.status === "In Progress").length;
+            document.getElementById("resolved").textContent =
+                tickets.filter(t => t.status === "Resolved").length;
+
+            rows.replaceChildren();
+
+            if (tickets.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 5;
+                td.textContent = "No tickets yet.";
+                tr.appendChild(td);
+                rows.appendChild(tr);
+                return;
+            }
+
+            tickets.forEach(ticket => {
+                const tr = document.createElement("tr");
+                [ticket.id, ticket.title, ticket.priority, ticket.status].forEach(value => {
+                    const td = document.createElement("td");
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+
+                const actionCell = document.createElement("td");
+                const select = document.createElement("select");
+                select.className = "status-select";
+
+                ["Open", "In Progress", "Resolved"].forEach(status => {
+                    const option = document.createElement("option");
+                    option.value = status;
+                    option.textContent = status;
+                    if (ticket.status === status) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                select.addEventListener("change", async () => {
+                    try {
+                        const result = await fetch(
+                            `${API}/tickets/${ticket.id}?status=${encodeURIComponent(select.value)}`,
+                            { method: "PUT" }
+                        );
+                        const data = await result.json();
+                        if (!result.ok) throw new Error(data.detail?.message || data.detail || "Update failed");
+                        message.className = "success";
+                        message.textContent = `Ticket #${ticket.id} updated successfully.`;
+                        await loadTickets();
+                    } catch (error) {
+                        message.className = "error";
+                        message.textContent = error.message;
+                        await loadTickets();
+                    }
+                });
+
+                actionCell.appendChild(select);
+                tr.appendChild(actionCell);
+                rows.appendChild(tr);
+            });
+        } catch (error) {
+            rows.replaceChildren();
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 5;
+            td.textContent = "Unable to connect to the API. Check that the backend server is running.";
+            tr.appendChild(td);
+            rows.appendChild(tr);
+        }
+    }
+
+    document.getElementById("ticketForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        message.className = "";
+        message.textContent = "Creating ticket...";
+
+        const ticket = {
+            title: document.getElementById("title").value.trim(),
+            description: document.getElementById("description").value.trim(),
+            priority: document.getElementById("priority").value
+        };
+
+        if (!ticket.title || !ticket.description) {
+            message.className = "error";
+            message.textContent = "Please enter a title and description.";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API}/tickets`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ticket)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail?.[0]?.msg || data.detail || "Could not create ticket");
+
+            message.className = "success";
+            message.textContent = `Ticket #${data.ticket.id} created successfully!`;
+            document.getElementById("ticketForm").reset();
+            await loadTickets();
+        } catch (error) {
+            message.className = "error";
+            message.textContent = "Could not create ticket. Make sure the backend is running and the browser can connect to it.";
+        }
+    });
+
+    document.getElementById("refresh").addEventListener("click", loadTickets);
+    loadTickets();
+</script>
+<section style="margin:24px 0;padding:24px;background:#fff;border-radius:16px;box-shadow:0 4px 18px #0001">
+  <h2>🤖 AI Troubleshooting Assistant</h2>
+  <p>Describe your IT problem and get AI-powered troubleshooting steps.</p>
+
+  <textarea id="aiIssue" placeholder="Example: My WiFi is not connecting..."
+    style="width:100%;min-height:100px;padding:12px;box-sizing:border-box;border:1px solid #ccc;border-radius:8px"></textarea>
+
+<button onclick="runAI()"
+    style="margin-top:12px;padding:12px 20px;background:#2563eb;color:white;border:0;border-radius:8px;cursor:pointer">
+    AI Troubleshoot
+  </button>
+
+  <pre id="aiResult" style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:16px"></pre>
+</section>
+
+<script>
+async function runAI() {
+  const issue = document.getElementById("aiIssue").value.trim();
+  const result = document.getElementById("aiResult");
+
+  if (!issue) {
+    result.textContent = "Please describe your IT problem first.";
+    return;
+  }
+
+  result.textContent = "AI is analyzing your issue...";
+
+  try {
+    const response = await fetch("/ai/troubleshoot", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({issue})
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "AI request failed");
+    }
+
+    result.textContent = data.ai_response;
+  } catch (error) {
+    result.textContent = "Error: " + error.message;
+  }
+}
+</script>
+</body>
+</html>
