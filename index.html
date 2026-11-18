@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDesk AI | IT Helpdesk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f7;--surface:#fff;--ink:#16212c;--ink2:#3b4856;--muted:#6b7784;--line:#e2e6eb;--line2:#eef0f3;
+  --accent:#0e7c7b;--accent-d:#0a5f5e;--accent-t:#e3f2f1;
+  --amber:#b86e00;--amber-t:#fdf0d9;--blue:#2f5fd0;--blue-t:#e6edfc;
+  --green:#1b7f4d;--green-t:#e1f3e9;--red:#c23a3a;--red-t:#fbe6e6;--grey:#6b7784;--grey-t:#eceff2;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+svg{flex-shrink:0}
+
+/* Sidebar */
+.sidebar{position:fixed;inset:0 auto 0 0;width:244px;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 14px;z-index:20}
+.brand{display:flex;align-items:center;gap:11px;padding:2px 8px 22px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+.brand b{display:block;font-size:15px;font-weight:600;letter-spacing:-.2px}
+.brand span{display:block;font-size:12px;color:var(--muted)}
+.nav-group{font-size:12px;font-weight:600;color:var(--muted);padding:16px 10px 6px}
+.nav{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;padding:9px 10px;border-radius:8px;color:var(--ink2);font-weight:500;text-align:left;position:relative}
+.nav:hover{background:var(--bg)}
+.nav.active{background:var(--accent-t);color:var(--accent-d)}
+.nav .count{margin-left:auto;font-size:12px;font-weight:600;background:var(--grey-t);color:var(--ink2);border-radius:20px;padding:0 8px;min-width:24px;text-align:center}
+.nav.active .count{background:#fff;color:var(--accent-d)}
+.me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:14px 8px 2px;border-top:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px}
+.me b{display:block;font-size:13px;font-weight:600}
+.me span{display:block;font-size:12px;color:var(--muted)}
+
+/* Layout */
+.main{margin-left:244px;padding:0 32px 48px;max-width:1480px}
+.topbar{display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px}
+.crumb{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:10px}
+.crumb b{color:var(--ink);font-weight:600}
+.btn.menu-btn{display:none}
+.live{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-right:6px}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.live.off i{background:var(--red)}
+.tools{display:flex;align-items:center;gap:8px}
+.page{display:none}
+.page.active{display:block}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:6px 0 22px}
+.head h1{font-size:24px;font-weight:600;letter-spacing:-.5px}
+.head p{color:var(--muted);margin-top:3px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink2);transition:background .15s,border-color .15s}
+.btn:hover{background:var(--bg);border-color:#d2d8df}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.icon-btn{width:36px;height:36px;padding:0}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.sm.icon-btn{width:30px;height:30px;padding:0}
+.btn.danger:hover{background:var(--red-t);border-color:#efc3c3;color:var(--red)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+.panel-h h2{font-size:15px;font-weight:600}
+.panel-h p{font-size:12.5px;color:var(--muted)}
+.panel-b{padding:18px 20px}
+
+/* Summary strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:18px}
+.strip>div{padding:18px 20px;border-left:1px solid var(--line2)}
+.strip>div:first-child{border-left:0}
+.strip .lbl{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:500}
+.strip .dot{width:8px;height:8px;border-radius:50%}
+.strip .num{font-size:32px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:8px;font-variant-numeric:tabular-nums}
+.strip .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px;align-items:start}
+.stack{display:grid;gap:18px}
+
+/* Segmented status bar */
+.seg{display:flex;height:10px;border-radius:20px;overflow:hidden;background:var(--grey-t);gap:2px}
+.seg i{display:block;height:100%;transition:width .4s}
+.legend{display:grid;gap:10px;margin-top:16px}
+.legend div{display:flex;align-items:center;gap:10px;font-size:13px}
+.legend .dot{width:9px;height:9px;border-radius:3px}
+.legend b{margin-left:auto;font-variant-numeric:tabular-nums}
+.legend em{font-style:normal;color:var(--muted);width:42px;text-align:right}
+.bar{margin-bottom:16px}.bar:last-child{margin-bottom:0}
+.bar-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}
+.bar-top em{font-style:normal;color:var(--muted);margin-left:6px}
+.track{height:8px;background:var(--grey-t);border-radius:20px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:20px;transition:width .4s}
+
+/* Activity */
+.feed{display:grid}
+.feed a{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.feed a:last-child{border:0;padding-bottom:0}
+.feed .dot{width:8px;height:8px;border-radius:50%;margin-top:7px;flex-shrink:0}
+.feed b{display:block;font-weight:500;font-size:13px}
+.feed span{font-size:12px;color:var(--muted)}
+
+/* Table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);padding:10px 20px;background:#fafbfc;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:13px 20px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafbfc}
+.id{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:500}
+.t-title{font-weight:600}
+.t-desc{color:var(--muted);font-size:12.5px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pri{display:inline-flex;align-items:center;gap:7px;font-weight:500}
+.pri i{width:8px;height:8px;border-radius:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.s-open{background:var(--amber-t);color:var(--amber)}
+.s-progress{background:var(--blue-t);color:var(--blue)}
+.s-resolved{background:var(--green-t);color:var(--green)}
+.s-closed{background:var(--grey-t);color:var(--grey)}
+.acts{display:flex;gap:6px;align-items:center;justify-content:flex-end;white-space:nowrap}
+th:last-child{text-align:right}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-weight:600;margin-bottom:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.search{position:relative}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.filters input,.filters select,.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:8px;background:#fff;padding:8px 11px;font-size:13px;width:100%}
+.filters select,.filters .search{width:auto}
+.filters .search input{padding-left:34px;width:240px}
+.filters input:focus,.filters select:focus,.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+
+/* Analytics */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+/* AI */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:20px;padding:4px 12px;font-size:12.5px;color:var(--ink2)}
+.chip:hover{border-color:var(--accent);color:var(--accent-d)}
+.answer{display:none;margin-top:18px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:#fafbfc;padding:16px 18px;white-space:pre-wrap;line-height:1.75;font-size:13.5px}
+.answer.err{border-left-color:var(--red)}
+
+/* Forms / modal */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field textarea{min-height:110px;resize:vertical}
+.hint{font-size:12.5px;color:var(--muted);margin-top:14px}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(15,25,35,.45);z-index:40;align-items:center;justify-content:center;padding:16px}
+.backdrop.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(15,25,35,.25)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line2)}
+.modal-h h3{font-size:16px;font-weight:600}
+.modal form{padding:20px 22px 22px}
+.modal-f{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:9px;font-size:13px;z-index:60;box-shadow:0 10px 30px rgba(15,25,35,.25);transform:translateY(12px);opacity:0;pointer-events:none;transition:.2s}
+.toast.show{transform:none;opacity:1}
+.scrim{display:none}
+
+@media(max-width:1100px){.grid{grid-template-columns:1fr}.strip{grid-template-columns:repeat(2,1fr)}.strip>div:nth-child(3){border-left:0}.strip>div:nth-child(n+3){border-top:1px solid var(--line2)}}
+@media(max-width:760px){
+  .sidebar{transform:translateX(-100%);transition:transform .22s}
+  .sidebar.open{transform:none}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(15,25,35,.4);z-index:15}
+  .main{margin:0;padding:0 16px 40px}
+  .btn.menu-btn{display:inline-flex}
+  .head{flex-direction:column;align-items:flex-start}
+  .cols2{grid-template-columns:1fr}
+  .live span{display:none}
+  .filters,.filters .search{width:100%}
+  .filters .search input{width:100%}
+  .filters select{flex:1}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
+  <div class="brand"><div class="logo">S</div><div><b id="brandName">SmartDesk AI</b><span>IT service management</span></div></div>
+  <div class="nav-group">Workspace</div>
+  <button class="nav active" data-page="overview"><i data-i="grid"></i>Overview</button>
+  <button class="nav" data-page="tickets"><i data-i="ticket"></i>All tickets<span class="count" id="cAll">0</span></button>
+  <button class="nav" data-page="progress"><i data-i="clock"></i>In progress<span class="count" id="cProg">0</span></button>
+  <button class="nav" data-page="resolved"><i data-i="check"></i>Resolved<span class="count" id="cRes">0</span></button>
+  <div class="nav-group">Manage</div>
+  <button class="nav" data-page="analytics"><i data-i="chart"></i>Analytics</button>
+  <button class="nav" data-page="ai"><i data-i="bot"></i>AI assistant</button>
+  <button class="nav" data-page="settings"><i data-i="sliders"></i>Settings</button>
+  <div class="me"><div class="avatar" id="avatar">A</div><div><b id="sideAdmin">Administrator</b><span id="sideTeam">IT Support Team</span></div></div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="crumb">
+      <button class="btn icon-btn menu-btn" id="mobileMenu" aria-label="Open menu"><i data-i="menu"></i></button>
+      <span>SmartDesk AI</span><span>/</span><b id="crumb">Overview</b>
+    </div>
+    <div class="tools">
+      <div class="live" id="live"><i></i><span id="liveText">Connected</span></div>
+      <button class="btn icon-btn" id="refreshBtn" title="Refresh" aria-label="Refresh"><i data-i="refresh"></i></button>
+    </div>
+  </div>
+
+  <!-- Overview -->
+  <section class="page active" id="page-overview">
+    <div class="head"><div><h1>Dashboard overview</h1><p>Track every IT request from first report to resolution.</p></div>
+      <button class="btn primary" data-new><i data-i="plus"></i>New ticket</button></div>
+    <div class="panel strip">
+      <div><div class="lbl"><span class="dot" style="background:var(--ink2)"></span>Total tickets</div><div class="num" id="totalCount">0</div><div class="sub">All registered requests</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--amber)"></span>Open</div><div class="num" id="openCount">0</div><div class="sub">Waiting for support</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--blue)"></span>In progress</div><div class="num" id="progressCount">0</div><div class="sub">Being handled now</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--green)"></span>Resolved</div><div class="num" id="resolvedCount">0</div><div class="sub">Completed requests</div></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-h"><div><h2>Recent tickets</h2><p>The five newest requests</p></div><button class="btn sm" data-goto="tickets">View all tickets</button></div>
+        <div class="tw"><table><thead><tr><th>ID</th><th>Ticket</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="recentTable"></tbody></table></div>
+      </div>
+      <div class="stack">
+        <div class="panel"><div class="panel-h"><div><h2>Status breakdown</h2><p>Share of all tickets</p></div></div>
+          <div class="panel-b"><div class="seg" id="seg"></div><div class="legend" id="legend"></div></div></div>
+        <div class="panel"><div class="panel-h"><div><h2>Latest activity</h2><p>Most recent ticket updates</p></div></div>
+          <div class="panel-b"><div class="feed" id="activityList"></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tickets -->
+  <section class="page" id="page-tickets">
+    <div class="head"><div><h1>All tickets</h1><p>Search, filter and manage every support request.</p></div>
+      <button class="btn primary" data-new><i data-i="plus"></i>New ticket</button></div>
+    <div class="panel">
+      <div class="panel-h"><h2>Support tickets</h2>
+        <div class="filters">
+          <div class="search"><i data-i="search"></i><input id="searchInput" placeholder="Search by title, ID or description" aria-label="Search tickets"></div>
+          <select id="statusFilter" aria-label="Filter by status"><option value="All">All statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select>
+          <select id="priorityFilter" aria-label="Filter by priority"><option value="All">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+        </div></div>
+      <div class="tw"><table><thead><tr><th>ID</th><th>Ticket</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ticketsTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- In progress -->
+  <section class="page" id="page-progress">
+    <div class="head"><div><h1>In progress</h1><p>Tickets your team is working on right now.</p></div></div>
+    <div class="panel"><div class="tw"><table><thead><tr><th>ID</th><th>Ticket</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="progressTable"></tbody></table></div></div>
+  </section>
+
+  <!-- Resolved -->
+  <section class="page" id="page-resolved">
+    <div class="head"><div><h1>Resolved tickets</h1><p>Completed and closed requests. Reopen one if the issue returns.</p></div></div>
+    <div class="panel"><div class="tw"><table><thead><tr><th>ID</th><th>Ticket</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="resolvedTable"></tbody></table></div></div>
+  </section>
+
+  <!-- Analytics -->
+  <section class="page" id="page-analytics">
+    <div class="head"><div><h1>Analytics</h1><p>See how your helpdesk is performing.</p></div>
+      <button class="btn" id="analyticsRefresh"><i data-i="refresh"></i>Refresh</button></div>
+    <div class="panel strip">
+      <div><div class="lbl">Total tickets</div><div class="num" id="aTotal">0</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--red)"></span>High priority</div><div class="num" id="aHigh">0</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--amber)"></span>Medium priority</div><div class="num" id="aMedium">0</div></div>
+      <div><div class="lbl"><span class="dot" style="background:var(--green)"></span>Low priority</div><div class="num" id="aLow">0</div></div>
+    </div>
+    <div class="cols2">
+      <div class="panel"><div class="panel-h"><div><h2>Status distribution</h2><p>Share of all tickets</p></div></div><div class="panel-b" id="analyticsStatus"></div></div>
+      <div class="panel"><div class="panel-h"><div><h2>Priority distribution</h2><p>How urgent the requests are</p></div></div><div class="panel-b" id="analyticsPriority"></div></div>
+    </div>
+  </section>
+
+  <!-- AI -->
+  <section class="page" id="page-ai">
+    <div class="head"><div><h1>AI assistant</h1><p>Describe a problem and get step-by-step troubleshooting from your local model.</p></div></div>
+    <div class="panel" style="max-width:780px"><div class="panel-b">
+      <div class="field" style="margin-bottom:0"><label for="aiIssue">What is the issue?</label>
+        <textarea id="aiIssue" placeholder="Example: My laptop is connected to Wi-Fi but websites will not load."></textarea></div>
+      <div class="chips" id="chips">
+        <button class="chip" type="button">Wi-Fi connected but no internet</button>
+        <button class="chip" type="button">Printer shows offline</button>
+        <button class="chip" type="button">Laptop is very slow</button>
+      </div>
+      <button class="btn primary" id="aiBtn"><i data-i="bot"></i>Get troubleshooting steps</button>
+      <div class="answer" id="aiAnswer" role="status"></div>
+    </div></div>
+  </section>
+
+  <!-- Settings -->
+  <section class="page" id="page-settings">
+    <div class="head"><div><h1>Settings</h1><p>Update your workspace details.</p></div></div>
+    <div class="panel" style="max-width:600px"><div class="panel-b">
+      <div class="field"><label for="companyName">Workspace name</label><input id="companyName" placeholder="SmartDesk AI"></div>
+      <div class="field"><label for="adminName">Administrator name</label><input id="adminName" placeholder="Administrator"></div>
+      <div class="field"><label for="teamName">Support team name</label><input id="teamName" placeholder="IT Support Team"></div>
+      <button class="btn primary" id="saveSettings">Save changes</button>
+      <p class="hint">Saved to your local SQLite database.</p>
+    </div></div>
+  </section>
+</main>
+
+<div class="backdrop" id="ticketModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-h"><h3 id="modalTitle">New ticket</h3><button class="btn sm icon-btn" id="closeModal" aria-label="Close"><i data-i="x"></i></button></div>
+    <form id="ticketForm">
+      <input type="hidden" id="editId">
+      <div class="field"><label for="ticketTitle">Title</label><input id="ticketTitle" required maxlength="200" placeholder="Laptop will not start"></div>
+      <div class="field"><label for="ticketDescription">Description</label><textarea id="ticketDescription" required maxlength="2000" placeholder="What happened, and when did it start?"></textarea></div>
+      <div class="field"><label for="ticketPriority">Priority</label><select id="ticketPriority"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+      <div class="modal-f"><button type="button" class="btn" id="cancelModal">Cancel</button><button class="btn primary" type="submit" id="submitTicket">Create ticket</button></div>
+    </form>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const API = "";
+let tickets = [], currentPage = "overview";
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+
+/* Icons */
+const P = {
+  grid:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  check:'<path d="M21 12a9 9 0 1 1-5.9-8.5"/><path d="m22 4-10 10-3-3"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>',
+  bot:'<rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 16h.01M16 16h.01"/>',
+  sliders:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>'
+};
+const svg = (n, s = 16) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+document.querySelectorAll("[data-i]").forEach(e => { e.outerHTML = svg(e.dataset.i, e.dataset.i === "search" ? 15 : 17); });
+
+/* Helpers */
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+function setLive(ok) { $("live").classList.toggle("off", !ok); $("liveText").textContent = ok ? "Connected" : "Server unreachable"; }
+
+async function apiRequest(path, options = {}) {
+  const res = await fetch(API + path, {...options, headers: {"Content-Type":"application/json", ...(options.headers || {})}});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || data.message || `Request failed (${res.status})`);
+  return data;
+}
+
+const STATUS = {"Open":["s-open","--amber"], "In Progress":["s-progress","--blue"], "Resolved":["s-resolved","--green"], "Closed":["s-closed","--grey"]};
+const PRI = {"High":"--red", "Medium":"--amber", "Low":"--green"};
+const isDone = t => t.status === "Resolved" || t.status === "Closed";
+const statusPill = s => `<span class="pill ${(STATUS[s] || STATUS.Closed)[0]}">${esc(s)}</span>`;
+const priority = p => `<span class="pri"><i style="background:var(${PRI[p] || "--grey"})"></i>${esc(p)}</span>`;
+
+function actionButtons(t) {
+  const id = Number(t.id);
+  const [label, next] = t.status === "Open" ? ["Start", "In Progress"] : t.status === "In Progress" ? ["Resolve", "Resolved"] : ["Reopen", "Open"];
+  return `<div class="acts">
+    <button class="btn sm" data-action="status" data-id="${id}" data-status="${next}">${label}</button>
+    <button class="btn sm icon-btn" data-action="edit" data-id="${id}" title="Edit ticket" aria-label="Edit ticket ${id}">${svg("pen", 14)}</button>
+    <button class="btn sm icon-btn danger" data-action="delete" data-id="${id}" title="Delete ticket" aria-label="Delete ticket ${id}">${svg("trash", 14)}</button></div>`;
+}
+const ticketRow = t => `<tr>
+  <td class="id">#${Number(t.id)}</td>
+  <td><div class="t-title">${esc(t.title)}</div><div class="t-desc">${esc(t.description)}</div></td>
+  <td>${priority(t.priority)}</td><td>${statusPill(t.status)}</td><td>${actionButtons(t)}</td></tr>`;
+
+function renderTable(target, list, emptyTitle = "No tickets found", emptyText = "Try a different filter or create a new ticket.") {
+  $(target).innerHTML = list.length ? list.map(ticketRow).join("")
+    : `<tr><td colspan="5"><div class="empty"><b>${emptyTitle}</b>${emptyText}</div></td></tr>`;
+}
+const pct = (n, total) => total ? Math.round(n * 100 / total) : 0;
+const bar = (label, n, p, color) => `<div class="bar"><div class="bar-top"><span>${label}</span><span><b>${n}</b><em>${p}%</em></span></div><div class="track"><i style="width:${p}%;background:var(${color})"></i></div></div>`;
+
+/* Render */
+function renderOverview() {
+  const total = tickets.length;
+  const open = tickets.filter(t => t.status === "Open").length;
+  const prog = tickets.filter(t => t.status === "In Progress").length;
+  const done = tickets.filter(isDone).length;
+  $("totalCount").textContent = total; $("openCount").textContent = open;
+  $("progressCount").textContent = prog; $("resolvedCount").textContent = done;
+  $("cAll").textContent = total; $("cProg").textContent = prog; $("cRes").textContent = done;
+
+  const parts = [["Open", open, "--amber"], ["In progress", prog, "--blue"], ["Resolved", done, "--green"]];
+  $("seg").innerHTML = parts.map(p => `<i style="width:${pct(p[1], total)}%;background:var(${p[2]})"></i>`).join("");
+  $("legend").innerHTML = parts.map(p => `<div><span class="dot" style="background:var(${p[2]})"></span>${p[0]}<b>${p[1]}</b><em>${pct(p[1], total)}%</em></div>`).join("");
+
+  const recent = [...tickets].sort((a, b) => b.id - a.id).slice(0, 5);
+  $("activityList").innerHTML = recent.length ? recent.map(t => `
+    <a><span class="dot" style="background:var(${(STATUS[t.status] || STATUS.Closed)[1]})"></span>
+    <div><b>${esc(t.title)}</b><span>Ticket #${Number(t.id)} is ${esc(String(t.status).toLowerCase())}</span></div></a>`).join("")
+    : `<div class="empty"><b>No activity yet</b>Create a ticket to get started.</div>`;
+  renderTable("recentTable", recent, "No tickets yet", "Create your first ticket to see it here.");
+}
+function renderTickets() {
+  const q = $("searchInput").value.trim().toLowerCase(), s = $("statusFilter").value, p = $("priorityFilter").value;
+  renderTable("ticketsTable", tickets.filter(t =>
+    (!q || String(t.id).includes(q) || String(t.title).toLowerCase().includes(q) || String(t.description).toLowerCase().includes(q)) &&
+    (s === "All" || t.status === s) && (p === "All" || t.priority === p)));
+}
+function renderOthers() {
+  renderTable("progressTable", tickets.filter(t => t.status === "In Progress"), "Nothing in progress", "Start an open ticket to move it here.");
+  renderTable("resolvedTable", tickets.filter(isDone), "No resolved tickets yet", "Resolved tickets will appear here.");
+}
+
+async function loadDashboard() {
+  try {
+    tickets = await apiRequest("/tickets");
+    setLive(true); renderOverview(); renderTickets(); renderOthers();
+    if (currentPage === "analytics") loadAnalytics();
+  } catch (e) { setLive(false); toast("Could not load tickets: " + e.message); }
+}
+async function loadAnalytics() {
+  try {
+    const a = await apiRequest("/analytics");
+    $("aTotal").textContent = a.total; $("aHigh").textContent = a.high_priority;
+    $("aMedium").textContent = a.medium_priority; $("aLow").textContent = a.low_priority;
+    $("analyticsStatus").innerHTML =
+      bar("Open", a.open, a.open_percentage, "--amber") +
+      bar("In progress", a.in_progress, a.in_progress_percentage, "--blue") +
+      bar("Resolved", a.resolved, a.resolved_percentage, "--green");
+    const tot = a.high_priority + a.medium_priority + a.low_priority;
+    $("analyticsPriority").innerHTML =
+      bar("High", a.high_priority, pct(a.high_priority, tot), "--red") +
+      bar("Medium", a.medium_priority, pct(a.medium_priority, tot), "--amber") +
+      bar("Low", a.low_priority, pct(a.low_priority, tot), "--green");
+  } catch (e) { toast("Analytics error: " + e.message); }
+}
+
+/* Navigation */
+const TITLES = {overview:"Overview", tickets:"All tickets", progress:"In progress", resolved:"Resolved", analytics:"Analytics", ai:"AI assistant", settings:"Settings"};
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll(".page").forEach(s => s.classList.toggle("active", s.id === "page-" + page));
+  document.querySelectorAll(".nav").forEach(b => b.classList.toggle("active", b.dataset.page === page));
+  $("crumb").textContent = TITLES[page];
+  toggleMenu(false);
+  if (page === "analytics") loadAnalytics();
+  if (page === "settings") loadSettings();
+  window.scrollTo(0, 0);
+}
+function toggleMenu(open) {
+  $("sidebar").classList.toggle("open", open);
+  $("scrim").classList.toggle("show", open);
+}
+
+/* Ticket modal */
+function openModal(t = null) {
+  $("ticketForm").reset();
+  $("editId").value = t ? t.id : "";
+  $("modalTitle").textContent = t ? "Edit ticket" : "New ticket";
+  $("submitTicket").textContent = t ? "Save changes" : "Create ticket";
+  if (t) { $("ticketTitle").value = t.title; $("ticketDescription").value = t.description; $("ticketPriority").value = t.priority; }
+  $("ticketModal").classList.add("show");
+  setTimeout(() => $("ticketTitle").focus(), 30);
+}
+const closeModal = () => $("ticketModal").classList.remove("show");
+
+async function changeStatus(id, status) {
+  try {
+    await apiRequest(`/tickets/${id}`, {method:"PUT", body:JSON.stringify({status})});
+    toast(`Ticket #${id} moved to ${status}`); await loadDashboard();
+  } catch (e) { toast("Update failed: " + e.message); }
+}
+async function deleteTicket(id) {
+  if (!confirm(`Delete ticket #${id}? This cannot be undone.`)) return;
+  try {
+    await apiRequest(`/tickets/${id}`, {method:"DELETE"});
+    toast(`Ticket #${id} deleted`); await loadDashboard();
+  } catch (e) { toast("Delete failed: " + e.message); }
+}
+
+$("ticketForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("editId").value;
+  const payload = {title:$("ticketTitle").value.trim(), description:$("ticketDescription").value.trim(), priority:$("ticketPriority").value};
+  if (!payload.title || !payload.description) return toast("Add a title and description.");
+  try {
+    if (id) { await apiRequest(`/tickets/${id}`, {method:"PATCH", body:JSON.stringify(payload)}); toast("Ticket saved"); }
+    else { await apiRequest("/tickets", {method:"POST", body:JSON.stringify(payload)}); toast("Ticket created"); }
+    closeModal(); await loadDashboard();
+  } catch (err) { toast("Save failed: " + err.message); }
+});
+
+/* Settings */
+function applySettings(s) {
+  const admin = s.administrator || "Administrator";
+  $("sideAdmin").textContent = admin; $("sideTeam").textContent = s.team_name || "IT Support Team";
+  $("avatar").textContent = admin.trim().charAt(0).toUpperCase() || "A";
+  if (s.company_name) { $("brandName").textContent = s.company_name; document.title = s.company_name + " | IT Helpdesk"; }
+}
+async function loadSettings() {
+  try {
+    const s = await apiRequest("/settings");
+    $("companyName").value = s.company_name || ""; $("adminName").value = s.administrator || ""; $("teamName").value = s.team_name || "";
+  } catch (e) { toast("Settings error: " + e.message); }
+}
+$("saveSettings").addEventListener("click", async () => {
+  const payload = {company_name:$("companyName").value.trim(), administrator:$("adminName").value.trim(), team_name:$("teamName").value.trim()};
+  try {
+    const r = await apiRequest("/settings", {method:"PUT", body:JSON.stringify(payload)});
+    applySettings(r.settings || payload); toast("Settings saved");
+  } catch (e) { toast("Save failed: " + e.message); }
+});
+
+/* AI assistant */
+async function askAI() {
+  const issue = $("aiIssue").value.trim();
+  if (!issue) return toast("Describe the issue first.");
+  const btn = $("aiBtn"), box = $("aiAnswer");
+  btn.disabled = true; btn.textContent = "Thinking...";
+  box.className = "answer"; box.style.display = "block"; box.textContent = "Analyzing your issue...";
+  try {
+    const r = await apiRequest("/ai/troubleshoot", {method:"POST", body:JSON.stringify({issue})});
+    box.textContent = r.ai_response;
+  } catch (e) {
+    box.classList.add("err");
+    box.textContent = "The AI assistant is unavailable: " + e.message + "\n\nCheck that Ollama is running and the llama3.2 model is installed.";
+  } finally { btn.disabled = false; btn.innerHTML = svg("bot", 17) + "Get troubleshooting steps"; }
+}
+$("aiBtn").addEventListener("click", askAI);
+$("aiIssue").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) askAI(); });
+$("chips").addEventListener("click", e => { const c = e.target.closest(".chip"); if (c) { $("aiIssue").value = c.textContent; $("aiIssue").focus(); } });
+
+/* Events */
+document.querySelectorAll(".nav").forEach(b => b.addEventListener("click", () => navigate(b.dataset.page)));
+document.querySelectorAll("[data-goto]").forEach(b => b.addEventListener("click", () => navigate(b.dataset.goto)));
+document.querySelectorAll("[data-new]").forEach(b => b.addEventListener("click", () => openModal()));
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-action]"); if (!b) return;
+  const id = Number(b.dataset.id);
+  if (b.dataset.action === "status") changeStatus(id, b.dataset.status);
+  if (b.dataset.action === "edit") { const t = tickets.find(x => Number(x.id) === id); if (t) openModal(t); }
+  if (b.dataset.action === "delete") deleteTicket(id);
+});
+$("closeModal").addEventListener("click", closeModal);
+$("cancelModal").addEventListener("click", closeModal);
+$("ticketModal").addEventListener("click", e => { if (e.target === $("ticketModal")) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); toggleMenu(false); } });
+$("searchInput").addEventListener("input", renderTickets);
+$("statusFilter").addEventListener("change", renderTickets);
+$("priorityFilter").addEventListener("change", renderTickets);
+$("refreshBtn").addEventListener("click", async () => { await loadDashboard(); toast("Dashboard refreshed"); });
+$("analyticsRefresh").addEventListener("click", loadAnalytics);
+$("mobileMenu").addEventListener("click", () => toggleMenu(true));
+$("scrim").addEventListener("click", () => toggleMenu(false));
+
+(async function start() {
+  try { applySettings(await apiRequest("/settings")); } catch (e) { console.warn("Settings could not be loaded", e); }
+  await loadDashboard();
+})();
+setInterval(loadDashboard, 30000);
+</script>
+</body>
+</html>
