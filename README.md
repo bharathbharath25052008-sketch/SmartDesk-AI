@@ -8,6 +8,9 @@ An AI-powered IT Helpdesk and Ticket Management System built using Python, FastA
 SmartDesk AI is a web-based IT Service Management (ITSM) application designed to simplify IT support operations. It helps support teams create, track, update, and manage technical support tickets through an interactive dashboard.
 
 The application also integrates a local AI troubleshooting assistant using Ollama and the Llama 3.2 model.
+## Dashboard Preview
+
+![SmartDesk AI Dashboard](dashboard.png)
 
 ## Features
 
